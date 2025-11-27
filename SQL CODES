@@ -1,1 +1,52 @@
+--creating table login
 
+CREATE TABLE login_audit (
+    audit_id       NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    username       VARCHAR2(100) NOT NULL,
+    attempt_time   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status         VARCHAR2(10) CHECK (status IN ('SUCCESS', 'FAILED'))
+);
+
+--cretaing table security_alerts
+
+CREATE TABLE security_alerts (
+    alert_id         NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    username         VARCHAR2(100) NOT NULL,
+    failed_attempts  NUMBER NOT NULL,
+    alert_time       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    alert_message    VARCHAR2(255),
+    contact_email    VARCHAR2(100)
+);
+
+--trigger creation
+
+CREATE OR REPLACE TRIGGER trg_failed_login_alert
+AFTER INSERT ON login_audit
+FOR EACH ROW
+WHEN (NEW.status = 'FAILED')
+DECLARE
+    v_fail_count NUMBER;
+BEGIN
+    SELECT COUNT(*)
+    INTO v_fail_count
+    FROM login_audit
+    WHERE username = :NEW.username
+      AND status = 'FAILED'
+      AND TRUNC(attempt_time) = TRUNC(SYSDATE);
+
+    IF v_fail_count > 2 THEN
+        INSERT INTO security_alerts (
+            username,
+            failed_attempts,
+            alert_message,
+            contact_email
+        ) VALUES (
+            :NEW.username,
+            v_fail_count,
+            'Security Alert: Multiple failed login attempts detected.',
+            'security-team@company.com'   -- Replace with real contact
+        );
+    END IF;
+
+END;
+/
