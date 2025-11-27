@@ -1,4 +1,4 @@
- login-audit
+# login-audit
 This system logs all login attempts and automatically generates a security alert when a user fails to log in more than twice in a day.
 To improve system security and detect suspicious login behavior, a database-level monitoring mechanism was implemented using audit tables and triggers. The goal is to track all login activity, identify abnormal patterns, and automatically generate alerts when a user repeatedly fails to log in.
 
