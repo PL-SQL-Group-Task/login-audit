@@ -1,2 +1,13 @@
 # login-audit
 This system logs all login attempts and automatically generates a security alert when a user fails to log in more than twice in a day.
+To improve system security and detect suspicious login behavior, a database-level monitoring mechanism was implemented using audit tables and triggers. The goal is to track all login activity, identify abnormal patterns, and automatically generate alerts when a user repeatedly fails to log in.
+
+The first component is the login_audit table, which stores every login attempt made by users. For each attempt, the system records the username, the time of the attempt, the IP address or device information, and whether the login was successful or failed. This ensures that all authentication activity is permanently stored for security analysis and compliance purposes.
+
+The second component is the security_alerts table. This table stores all security alerts generated when suspicious login behavior is detected. Each alert contains the username involved, the total number of failed attempts, the time the alert was created, a descriptive message, and the contact information of the security team to be notified. This table acts as a log of all incidents requiring investigation.
+
+To enforce the organization’s security policy, an AFTER INSERT trigger was created on the login_audit table. This trigger activates automatically every time a failed login attempt is recorded. When a failed attempt occurs, the trigger counts how many times the same user has failed to log in on the same day. If the number of failed attempts exceeds two, the trigger automatically creates a new entry in the security_alerts table. This ensures that any user who fails three or more times triggers an immediate security alert without requiring manual monitoring.
+
+An optional advanced feature was also included: a second trigger that sends an automated email notification to the security team whenever a new alert is inserted into security_alerts. Using Oracle’s UTL_MAIL package, the system sends a message that includes the username and number of failed attempts, allowing the security team to respond quickly.
+
+Overall, this implementation ensures that normal login activity is logged routinely, while suspicious behavior is detected and escalated automatically. Users who make one or two incorrect attempts are only recorded, but users who fail three or more times cause an alert to be generated—enhancing system security and enabling rapid response to potential threats.
